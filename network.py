@@ -51,6 +51,7 @@ class Person:
             old_meme = self.feed.pop(0)
             old_meme.ocurrences -= 1
             if old_meme.ocurrences == 0: old_meme.end = time
+
         
     def share(self, meme, time):
         meme.shares += 1
@@ -95,7 +96,10 @@ class Network:
         
         for i in range(people): self.add_person()
         self.random_connexions(connexions)
-            
+
+    def active_meme(self):
+        return len([x for x in self.memes if x.occurences > 0])
+
     def add_person(self):
         self.people.append(Person(feed=[], friends=[], alpha=self.alpha, mu=self.mu))
         self.size += 1
