@@ -13,6 +13,8 @@ import time
 import pandas as pd
 import numpy as np
 
+alpha = 20
+mu = 0.1
 
 def quality_cdf(u):
     return u
@@ -159,8 +161,7 @@ class Network:
 
 
 if __name__ == '__main__':
-    alpha = 20
-    mu = 0.1
+
     n_steps = 10000
     n_people = 1000
     n_connexions = 100000
