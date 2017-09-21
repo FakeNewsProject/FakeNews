@@ -11,12 +11,11 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 import time
 import pandas as pd
+import numpy as np
+
 
 def quality_cdf(u):
     return u
-
-def test(u):
-    return "hello world"
 
     
 class Meme:
@@ -148,7 +147,7 @@ if __name__ == '__main__':
     n_people = 1000
     n_connexions = 100000
     
-    net = network(people = n_people, connexions = n_connexions)
+    net = Network(people=n_people, connexions = n_connexions)
     net.simulate(n_steps)
     net.plot_memes()
     
