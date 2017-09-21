@@ -16,6 +16,7 @@ import numpy as np
 alpha = 20
 mu = 0.1
 
+
 def quality_cdf(u):
     return u
 
@@ -35,8 +36,8 @@ class Person:
         self.feed = []
         self.friends = []
         
-    def publish(self, network, quality, start, views=0, shares=0):
-        mem = Meme(quality, views, shares, start)
+    def publish(self, network, quality, views=0, shares=0):
+        mem = Meme(quality, views, shares, network.time)
         self.share(mem)
         network.memes.append(mem)
         
