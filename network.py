@@ -15,6 +15,9 @@ from random import shuffle
 def quality_cdf(u):
     return u
 
+def test(u):
+    return "hello world"
+
     
 class Meme:
     def __init__(self, quality, views, shares, start):
@@ -134,21 +137,21 @@ alpha = 10
 mu = 0.05
 people = 100
 connexions = 2500
-steps = 1000
+steps = 100
 
-if __name__ == "__main__":
-
-    network = Network(people, connexions)
-    network.simulate(steps)
-    print("memes count " + str(len(network.memes)))
-
-    data = dict(quality=[x.quality for x in network.memes], shares=[x.shares for x in network.memes],
-                views=[x.views for x in network.memes], start=[x.start for x in network.memes],
-                end=[x.end for x in network.memes])
-
-    df_memes = pd.DataFrame.from_dict(data)
-    df_memes.index = df_memes['quality']
-    df_memes = df_memes[['shares', 'views', 'start', 'end']]
-    print(df_memes.head())
-    print(df_memes.describe())
+# if __name__ == "__main__":
+#
+#     network = Network(people, connexions)
+#     network.simulate(steps)
+#     print("memes count " + str(len(network.memes)))
+#
+#     data = dict(quality=[x.quality for x in network.memes], shares=[x.shares for x in network.memes],
+#                 views=[x.views for x in network.memes], start=[x.start for x in network.memes],
+#                 end=[x.end for x in network.memes])
+#
+#     df_memes = pd.DataFrame.from_dict(data)
+#     df_memes.index = df_memes['quality']
+#     df_memes = df_memes[['shares', 'views', 'start', 'end']]
+#     print(df_memes.head())
+#     print(df_memes.describe())
 
