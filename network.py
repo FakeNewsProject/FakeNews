@@ -56,7 +56,6 @@ class Person:
                 old_meme.end = time
                 return old_meme
 
-        
     def share(self, meme, time):
         meme.shares += 1
         li_dead_meme = []
