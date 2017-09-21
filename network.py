@@ -151,7 +151,7 @@ if __name__ == '__main__':
     n_people = 1000
     n_connexions = 100000
     
-    net = Network(people=n_people, connexions = n_connexions)
+    net = Network(people=n_people, connexions=n_connexions)
     net.simulate(n_steps)
     net.plot_memes()
     
