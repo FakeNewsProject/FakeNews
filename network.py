@@ -5,12 +5,11 @@ Created on Mon Sep 18 23:47:03 2017
 @author: Rui Silva
 
 """
-
-import numpy as np
-import pandas as pd
 from numpy import random
 from random import shuffle
-
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+import time
 
 def quality_cdf(u):
     return u
@@ -140,14 +139,6 @@ class Network:
         (tau, p) = stats.kendalltau(x, y)
         return tau
 
-    def record_dead_memes(self, timestep):
-        for meme in self.memes:
-            li_feed = [people.feed for people in self.people]
-            li_in_feed = [meme in feed for feed in li_feed]
-            is_alive = any(li_in_feed)
-            if not is_alive and np.isnan(meme.end):
-                meme.end = timestep
-
 
 alpha = 10
 mu = 0.05
@@ -155,19 +146,4 @@ people = 100
 connexions = 2500
 steps = 100
 
-# if __name__ == "__main__":
-#
-#     network = Network(people, connexions)
-#     network.simulate(steps)
-#     print("memes count " + str(len(network.memes)))
-#
-#     data = dict(quality=[x.quality for x in network.memes], shares=[x.shares for x in network.memes],
-#                 views=[x.views for x in network.memes], start=[x.start for x in network.memes],
-#                 end=[x.end for x in network.memes])
-#
-#     df_memes = pd.DataFrame.from_dict(data)
-#     df_memes.index = df_memes['quality']
-#     df_memes = df_memes[['shares', 'views', 'start', 'end']]
-#     print(df_memes.head())
-#     print(df_memes.describe())
 
