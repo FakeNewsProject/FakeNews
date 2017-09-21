@@ -29,7 +29,7 @@ class Meme:
         
 
 class Person:
-    def __init__(self, feed=[], friends=[], alpha=Alpha, mu=Mu):
+    def __init__(self, feed=[], friends=[], alpha=20, mu=0.5):
         self.alpha = alpha
         self.mu = mu
         self.feed = []
