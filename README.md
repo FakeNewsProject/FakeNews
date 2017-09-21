@@ -1,2 +1,3 @@
 # fakenews
-Small branch to implement a model aiming to modelize the spreading of fake news on a social media
+Small branch to implement a model aiming to modelize the spreading of fake news on a social media.
+Test on the readme-edit branch !
