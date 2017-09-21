@@ -19,55 +19,56 @@ def quality_cdf(u):
 
     
 class Meme:
-    def __init__(self, quality, views, shares, start):
+    def __init__(self, quality, views=0, shares=0, start=0):
         self.quality = quality
-        self.views = 0
-        self.shares = 0
+        self.views = views
+        self.shares = shares
+        self.ocurrences = 0
         self.start = start
         self.end = np.nan
         
 
 class Person:
-    def __init__(self, feed = [], friends = []):
+    def __init__(self, feed=[], friends=[]):
         self.feed = []
-        self.friends =[]
+        self.friends = []
         
-    def publish(self, network, quality, start, views=0, shares=0):
-        mem = Meme(quality, views, shares, start)
-        self.share(mem)
+    def publish(self, network, quality, time, views=0, shares=0):
+        mem = Meme(quality, views, shares, start=time)
+        self.share(mem, time)
         network.memes.append(mem)
         
-    def view(self, meme):
+    def view(self, meme, time):
         meme.views += 1
-        if meme in self.feed: self.feed.remove(meme)
+        if meme in self.feed:
+            self.feed.remove(meme)
+            meme.ocurrences -= 1
         self.feed.append(meme)
+        meme.ocurrences += 1
         if len(self.feed) > alpha:
-            self.feed.pop(0)
+            old_meme = self.feed.pop(0)
+            old_meme.ocurrences -= 1
+            if old_meme.ocurrences == 0: old_meme.end = time
         
-    def share(self, meme):
+    def share(self, meme, time):
         meme.shares += 1
-        for friend in self.friends:
-            friend.view(meme)
+        for friend in self.friends: friend.view(meme, time)
             
-    def read_feed(self, u_sample):
+    def read_feed(self, u_sample, time):
         quality_sum = 0
         temp = 0
-        
-        for meme in self.feed:
-            quality_sum += meme.quality
-        
+        for meme in self.feed: quality_sum += meme.quality
         for meme in self.feed:
             temp += meme.quality / quality_sum
             if u_sample <= temp: 
-                self.share(meme)
+                self.share(meme, time)
                 break
         
-    def action(self, network, timestep):
+    def action(self, network):
         u_sample = random.uniform(0, 1)
-        if u_sample >= 1-mu:
-            self.publish(network=network, quality=quality_cdf((1 - u_sample) / mu), start=timestep)
-        else:
-            self.read_feed(u_sample / (1 - mu))
+        time = network.time
+        if u_sample >= 1-mu: self.publish(network=network, quality=quality_cdf((1 - u_sample) / mu), time=time)
+        else: self.read_feed(u_sample=(u_sample / (1 - mu)), time=time)
     
     def connected(self, person):
         if person == self: return True
@@ -80,11 +81,12 @@ class Person:
             
 
 class Network:
-    def __init__(self, people=0, connexions=0):
+    def __init__(self, people=0, connexions=0, time=0):
         self.people = []
         self.memes = []
         self.size = 0
-        if connexions > people * (people - 1):
+        self.time = 0
+        if connexions > people * (people - 1) / 2:
             raise Exception('Not enough people in the network to create '+str(connexions)+' different connexions')
         
         for i in range(people): self.add_person()
@@ -116,13 +118,14 @@ class Network:
                 count += 1
                 
     def simulate(self, n_steps):
-        temp = random.randint(self.size, size=n_steps)
-        for i in range(n_steps):
-            if i % 200 == 0 : print(i),
-            person = self.people[temp[i]]
-            person.action(self, i)
-            self.record_dead_memes(i)
-            
+        for i in range(n_steps): self.next_timestep()
+
+    def next_timestep(self):
+        temp = random.randint(self.size)
+        person = self.people[temp]
+        person.action(self)
+        self.time += 1
+
     def plot_memes(self):
         x = [meme.quality for meme in self.memes]
         y = [meme.shares for meme in self.memes]
@@ -141,6 +144,7 @@ class Network:
 
 
 if __name__ == '__main__':
+    t = time.time()
     alpha = 20
     mu = 0.1
     n_steps = 10000
