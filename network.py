@@ -126,7 +126,7 @@ class Network:
         person.action(self)
         self.time += 1
 
-    def plot_memes(self):
+    def plot_shares(self):
         x = [meme.quality for meme in self.memes]
         y = [meme.shares for meme in self.memes]
         plt.scatter(x, y)
@@ -135,7 +135,27 @@ class Network:
         plt.xlim(xmin=0)
         plt.ylim(ymin=0)
         plt.show()
-        
+
+    def plot_views(self):
+        x = [meme.quality for meme in self.memes]
+        y = [meme.views for meme in self.memes]
+        plt.scatter(x, y)
+        plt.xlabel("Quality")
+        plt.ylabel("Views")
+        plt.xlim(xmin=0)
+        plt.ylim(ymin=0)
+        plt.show()
+
+    def plot_lifetimes(self):
+        x = [meme.quality for meme in self.memes]
+        y = [meme.end - meme.start for meme in self.memes]
+        plt.scatter(x, y)
+        plt.xlabel("Quality")
+        plt.ylabel("Lifetime")
+        plt.xlim(xmin=0)
+        plt.ylim(ymin=0)
+        plt.show()
+
     def kendall_tau(self):
         x = [meme.quality for meme in self.memes]
         y = [meme.shares for meme in self.memes]
@@ -153,12 +173,17 @@ if __name__ == '__main__':
     
     net = Network(people=n_people, connexions=n_connexions)
     net.simulate(n_steps)
-    net.plot_memes()
+    net.plot_shares()
+    net.plot_views()
+    net.plot_lifetimes()
     
     memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
                              'views': [meme.views for meme in net.memes],
-                             'shares': [meme.shares for meme in net.memes]})
-    
+                             'shares': [meme.shares for meme in net.memes],
+                             'start': [meme.start for meme in net.memes],
+                             'end': [meme.end for meme in net.memes]})
+
+    memes_df['lifetime'] = memes_df['end'] - memes_df['start']
     print(memes_df)
     
     print("Kendall Tau : " + str(net.kendall_tau()))
