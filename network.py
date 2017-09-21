@@ -29,7 +29,9 @@ class Meme:
         
 
 class Person:
-    def __init__(self, feed=[], friends=[]):
+    def __init__(self, feed=[], friends=[], alpha=Alpha, mu=Mu):
+        self.alpha = alpha
+        self.mu = mu
         self.feed = []
         self.friends = []
         
@@ -45,7 +47,7 @@ class Person:
             meme.ocurrences -= 1
         self.feed.append(meme)
         meme.ocurrences += 1
-        if len(self.feed) > alpha:
+        if len(self.feed) > self.alpha:
             old_meme = self.feed.pop(0)
             old_meme.ocurrences -= 1
             if old_meme.ocurrences == 0: old_meme.end = time
@@ -67,8 +69,8 @@ class Person:
     def action(self, network):
         u_sample = random.uniform(0, 1)
         time = network.time
-        if u_sample >= 1-mu: self.publish(network=network, quality=quality_cdf((1 - u_sample) / mu), time=time)
-        else: self.read_feed(u_sample=(u_sample / (1 - mu)), time=time)
+        if u_sample >= 1-self.mu: self.publish(network=network, quality=quality_cdf((1 - u_sample) / self.mu), time=time)
+        else: self.read_feed(u_sample=(u_sample / (1 - self.mu)), time=time)
     
     def connected(self, person):
         if person == self: return True
@@ -81,7 +83,9 @@ class Person:
             
 
 class Network:
-    def __init__(self, people=0, connexions=0, time=0):
+    def __init__(self, people=0, connexions=0, alpha=0, mu=0):
+        self.alpha = alpha
+        self.mu = mu
         self.people = []
         self.memes = []
         self.size = 0
@@ -93,7 +97,7 @@ class Network:
         self.random_connexions(connexions)
             
     def add_person(self):
-        self.people.append(Person(feed=[], friends=[]))
+        self.people.append(Person(feed=[], friends=[], alpha=self.alpha, mu=self.mu))
         self.size += 1
         
     def connected(self, person1, person2):
@@ -165,13 +169,13 @@ class Network:
 
 if __name__ == '__main__':
     t = time.time()
-    alpha = 20
-    mu = 0.1
+    Alpha = 20
+    Mu = 0.1
     n_steps = 10000
     n_people = 1000
     n_connexions = 100000
     
-    net = Network(people=n_people, connexions=n_connexions)
+    net = Network(people=n_people, connexions=n_connexions, alpha=Alpha, mu=Mu)
     net.simulate(n_steps)
     net.plot_shares()
     net.plot_views()
