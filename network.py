@@ -19,18 +19,19 @@ def quality_cdf(u):
 
     
 class Meme:
-    def __init__(self, quality, views, shares, start):
+    def __init__(self, quality, views=0, shares=0, start=0):
         self.quality = quality
-        self.views = 0
-        self.shares = 0
+        self.views = views
+        self.shares = shares
         self.start = start
         self.end = np.nan
+        self.feeds_nb = 0
         
 
 class Person:
     def __init__(self, feed = [], friends = []):
         self.feed = []
-        self.friends =[]
+        self.friends = []
         
     def publish(self, network, quality, start, views=0, shares=0):
         mem = Meme(quality, views, shares, start)
@@ -39,11 +40,20 @@ class Person:
         
     def view(self, meme):
         meme.views += 1
-        if meme in self.feed: self.feed.remove(meme)
+        meme.feeds_nb += 1
+
+        if meme in self.feed:
+            self.feed.remove(meme)
+
         self.feed.append(meme)
+
         if len(self.feed) > alpha:
+            meme2 = self.feed[0]
+            meme2.feeds_nb += -1
             self.feed.pop(0)
-        
+            if meme2.feeds_nb == 0:
+                meme2.end = 0
+
     def share(self, meme):
         meme.shares += 1
         for friend in self.friends:
@@ -62,10 +72,10 @@ class Person:
                 self.share(meme)
                 break
         
-    def action(self, network, timestep):
+    def action(self, network):
         u_sample = random.uniform(0, 1)
         if u_sample >= 1-mu:
-            self.publish(network=network, quality=quality_cdf((1 - u_sample) / mu), start=timestep)
+            self.publish(network=network, quality=quality_cdf((1 - u_sample) / mu))
         else:
             self.read_feed(u_sample / (1 - mu))
     
@@ -81,6 +91,7 @@ class Person:
 
 class Network:
     def __init__(self, people=0, connexions=0):
+        self.time = 0
         self.people = []
         self.memes = []
         self.size = 0
@@ -114,6 +125,14 @@ class Network:
             else: 
                 self.connect(person1, person2)
                 count += 1
+
+    def timestep(self):
+        self.time += 1
+        if self.time % 1000 == 0: print(self.time, sep=',')
+        temp = random.randint(self.size)
+        person = self.people[temp]
+        person.action(self)
+
                 
     def simulate(self, n_steps):
         temp = random.randint(self.size, size=n_steps)
@@ -121,7 +140,6 @@ class Network:
             if i % 200 == 0 : print(i),
             person = self.people[temp[i]]
             person.action(self, i)
-            self.record_dead_memes(i)
             
     def plot_memes(self):
         x = [meme.quality for meme in self.memes]
@@ -146,9 +164,12 @@ if __name__ == '__main__':
     n_steps = 10000
     n_people = 1000
     n_connexions = 100000
-    
-    net = Network(people=n_people, connexions = n_connexions)
-    net.simulate(n_steps)
+
+    t = time.time()
+
+    net = Network(people=n_people, connexions=n_connexions)
+    for i in range(n_steps):
+        net.timestep()
     net.plot_memes()
     
     memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
