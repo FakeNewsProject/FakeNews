@@ -10,6 +10,7 @@ from random import shuffle
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import time
+import pandas as pd
 
 def quality_cdf(u):
     return u
@@ -140,10 +141,23 @@ class Network:
         return tau
 
 
-alpha = 10
-mu = 0.05
-people = 100
-connexions = 2500
-steps = 100
-
-
+if __name__ == '__main__':
+    alpha = 20
+    mu = 0.1
+    n_steps = 10000
+    n_people = 1000
+    n_connexions = 100000
+    
+    net = network(people = n_people, connexions = n_connexions)
+    net.simulate(n_steps)
+    net.plot_memes()
+    
+    memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
+                             'views': [meme.views for meme in net.memes],
+                             'shares': [meme.shares for meme in net.memes]})
+    
+    print(memes_df)
+    
+    print("Kendall Tau : " + str(net.kendall_tau()))
+            
+    print("Exec time : "+str(time.time() - t)+" seconds")   
