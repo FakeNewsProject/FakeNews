@@ -26,7 +26,7 @@ class Meme:
         self.shares = 0
         self.start = start
         self.end = np.nan
-
+        
 
 class Person:
     def __init__(self, feed = [], friends = []):
@@ -123,6 +123,22 @@ class Network:
             person = self.people[temp[i]]
             person.action(self, i)
             self.record_dead_memes(i)
+            
+    def plot_memes(self):
+        x = [meme.quality for meme in self.memes]
+        y = [meme.shares for meme in self.memes]
+        plt.scatter(x, y)
+        plt.xlabel("Quality")
+        plt.ylabel("Shares")
+        plt.xlim(xmin=0)
+        plt.ylim(ymin=0)
+        plt.show()
+        
+    def kendall_tau(self):
+        x = [meme.quality for meme in self.memes]
+        y = [meme.shares for meme in self.memes]
+        (tau, p) = stats.kendalltau(x, y)
+        return tau
 
     def record_dead_memes(self, timestep):
         for meme in self.memes:
