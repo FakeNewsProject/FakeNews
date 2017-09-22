@@ -94,7 +94,7 @@ class Person:
             
 
 class Network:
-    def __init__(self, people=0, connexions=0, alpha=0, mu=0):
+    def __init__(self, people=0, connexions=0, alpha=0, mu=0.):
         self.alpha = alpha
         self.mu = mu
         self.people = []
@@ -152,7 +152,7 @@ class Network:
         plt.scatter(x, y)
         plt.xlabel("Quality")
         plt.ylabel("Shares")
-        plt.xlim(xmin=0)
+        plt.xlim(xmin=0, xmax=1)
         plt.ylim(ymin=0)
         plt.show()
 
@@ -162,17 +162,17 @@ class Network:
         plt.scatter(x, y)
         plt.xlabel("Quality")
         plt.ylabel("Views")
-        plt.xlim(xmin=0)
+        plt.xlim(xmin=0, xmax=1)
         plt.ylim(ymin=0)
         plt.show()
 
-    def plot_lifetimes(self):
+    def plot_lifetime(self):
         x = [meme.quality for meme in self.memes]
         y = [meme.end - meme.start for meme in self.memes]
         plt.scatter(x, y)
         plt.xlabel("Quality")
         plt.ylabel("Lifetime")
-        plt.xlim(xmin=0)
+        plt.xlim(xmin=0, xmax=1)
         plt.ylim(ymin=0)
         plt.show()
 
@@ -182,6 +182,36 @@ class Network:
         (tau, p) = stats.kendalltau(x, y)
         return tau
 
+    def plot_shares_byquantiles(self, nb_quantiles):
+        df = pd.DataFrame({'Quality': [meme.quality for meme in self.memes],
+                           'Shares': [meme.shares for meme in self.memes]}).dropna()
+        df['Quality'] = ((1 - df['Quality'].rank(method='min', na_option='keep', ascending=False, pct=True)) * nb_quantiles).apply(int) + 1
+        plot = df.groupby('Quality').mean()
+        plot.plot(kind='bar')
+        plt.show()
+
+    def plot_views_byquantiles(self, nb_quantiles):
+        df = pd.DataFrame({'Quality': [meme.quality for meme in self.memes],
+                           'Views': [meme.views for meme in self.memes],}).dropna()
+        df['Quality'] = ((1 - df['Quality'].rank(method='min', na_option='keep', ascending=False, pct=True)) * nb_quantiles).apply(int) + 1
+        plot = df.groupby('Quality').mean()
+        plot.plot(kind='bar')
+        plt.show()
+
+    def plot_lifetime_byquantiles(self, nb_quantiles):
+        df = pd.DataFrame({'Quality': [meme.quality for meme in self.memes],
+                           'Lifetime': [meme.end - meme.start for meme in self.memes]}).dropna()
+        df['Quality'] = ((1 - df['Quality'].rank(method='min', na_option='keep', ascending=False, pct=True)) * nb_quantiles).apply(int) + 1
+        plot = df.groupby('Quality').mean()
+        plot.plot(kind='bar')
+        plt.show()
+
+    def entropy(self):
+        sum = np.sum([meme.ocurrences for meme in self.active_memes])
+        attention_list = [meme.ocurrences / sum for meme in self.active_memes]
+        entropy = -np.sum(attention * np.log(attention) for attention in attention_list)
+        return entropy
+
 
 if __name__ == '__main__':
     t = time.time()
@@ -189,23 +219,29 @@ if __name__ == '__main__':
     Mu = 0.1
     n_steps = 10000
     n_people = 1000
-    n_connexions = 100000
-    
-    net = Network(people=n_people, connexions=n_connexions, alpha=Alpha, mu=Mu)
-    net.simulate(n_steps)
-    net.plot_shares()
-    net.plot_views()
-    net.plot_lifetimes()
-    
-    memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
-                             'views': [meme.views for meme in net.memes],
-                             'shares': [meme.shares for meme in net.memes],
-                             'start': [meme.start for meme in net.memes],
-                             'end': [meme.end for meme in net.memes]})
 
-    memes_df['lifetime'] = memes_df['end'] - memes_df['start']
-    print(memes_df)
-    
-    print("Kendall Tau : " + str(net.kendall_tau()))
-            
-    print("Exec time : "+str(time.time() - t)+" seconds")   
+    for n_connexions in [1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000]:
+
+
+        net = Network(people=n_people, connexions=n_connexions, alpha=Alpha, mu=Mu)
+        net.simulate(n_steps)
+
+        net.plot_shares_byquantiles(40)
+        net.plot_shares()
+        #net.plot_views_byquantiles(40)
+        #net.plot_views()
+        #net.plot_lifetime_byquantiles(40)
+        #net.plot_lifetime()
+
+        memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
+                                 'views': [meme.views for meme in net.memes],
+                                 'shares': [meme.shares for meme in net.memes],
+                                 'start': [meme.start for meme in net.memes],
+                                 'end': [meme.end for meme in net.memes]})
+
+        memes_df['lifetime'] = memes_df['end'] - memes_df['start']
+        #print(memes_df)
+
+        print("Kendall Tau : " + str(net.kendall_tau()))
+
+        print("Exec time : "+str(time.time() - t)+" seconds")
