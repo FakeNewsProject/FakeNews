@@ -100,6 +100,7 @@ class Network:
         self.people = []
         self.active_memes = []
         self.active_memes_count = []
+        self.entropies = []
         self.memes = []
         self.size = 0
         self.time = 0
@@ -145,6 +146,27 @@ class Network:
         person.action(self)
         self.time += 1
         self.active_memes_count.append(len(self.active_memes))
+        self.entropies.append(self.entropy())
+
+    def plot_entropy(self):
+        x = range(self.time)
+        y = self.entropies
+        plt.scatter(x, y)
+        plt.xlabel("Time")
+        plt.ylabel("Entropy")
+        plt.xlim(xmin=0, xmax=self.time)
+        plt.ylim(ymin=0)
+        plt.show()
+
+    def plot_activememecount(self):
+        x = range(self.time)
+        y = self.active_memes_count
+        plt.scatter(x, y)
+        plt.xlabel("Time")
+        plt.ylabel("Active Memes")
+        plt.xlim(xmin=0, xmax=self.time)
+        plt.ylim(ymin=0)
+        plt.show()
 
     def plot_shares(self):
         x = [meme.quality for meme in self.memes]
@@ -216,32 +238,33 @@ class Network:
 if __name__ == '__main__':
     t = time.time()
     Alpha = 20
-    Mu = 0.1
+    Mu = 1
     n_steps = 10000
     n_people = 1000
 
-    for n_connexions in [1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000]:
+    n_connexions = 10000
 
+    net = Network(people=n_people, connexions=n_connexions, alpha=Alpha, mu=Mu)
+    net.simulate(n_steps)
 
-        net = Network(people=n_people, connexions=n_connexions, alpha=Alpha, mu=Mu)
-        net.simulate(n_steps)
+    net.plot_shares_byquantiles(40)
+    net.plot_shares()
+    net.plot_activememecount()
+    net.plot_entropy()
+    #net.plot_views_byquantiles(40)
+    #net.plot_views()
+    #net.plot_lifetime_byquantiles(40)
+    #net.plot_lifetime()
 
-        net.plot_shares_byquantiles(40)
-        net.plot_shares()
-        #net.plot_views_byquantiles(40)
-        #net.plot_views()
-        #net.plot_lifetime_byquantiles(40)
-        #net.plot_lifetime()
+    memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
+                             'views': [meme.views for meme in net.memes],
+                             'shares': [meme.shares for meme in net.memes],
+                             'start': [meme.start for meme in net.memes],
+                             'end': [meme.end for meme in net.memes]})
 
-        memes_df = pd.DataFrame({'quality': [meme.quality for meme in net.memes],
-                                 'views': [meme.views for meme in net.memes],
-                                 'shares': [meme.shares for meme in net.memes],
-                                 'start': [meme.start for meme in net.memes],
-                                 'end': [meme.end for meme in net.memes]})
+    memes_df['lifetime'] = memes_df['end'] - memes_df['start']
+    #print(memes_df)
 
-        memes_df['lifetime'] = memes_df['end'] - memes_df['start']
-        #print(memes_df)
+    print("Kendall Tau : " + str(net.kendall_tau()))
 
-        print("Kendall Tau : " + str(net.kendall_tau()))
-
-        print("Exec time : "+str(time.time() - t)+" seconds")
+    print("Exec time : "+str(time.time() - t)+" seconds")
