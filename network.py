@@ -137,7 +137,7 @@ class Network:
     def simulate(self, n_steps):
         t = time.time()
         for i in range(n_steps): self.next_timestep()
-        print("runtime : {0:.2f} s".format(time.time()-t))
+        #print("runtime : {0:.2f} s".format(time.time()-t))
 
     def next_timestep(self):
         temp = random.randint(self.size)
