@@ -29,20 +29,20 @@ class Meme:
         
 
 class Person:
-    def __init__(self, feed=[], friends=[], alpha=20, mu=0.5):
+    def __init__(self, feed, friends, alpha=20, mu=0.5):
         self.alpha = alpha
         self.mu = mu
-        self.feed = []
-        self.friends = []
+        self.feed = feed
+        self.friends = friends
         
-    def publish(self, network, quality, time, views=0, shares=0):
-        mem = Meme(quality, views, shares, start=time)
-        li_dead_meme = self.share(mem, time)
+    def publish(self, network, quality, time_step, views=0, shares=0):
+        mem = Meme(quality, views, shares, start=time_step)
+        li_dead_meme = self.share(mem, time_step)
         network.memes.append(mem)
         network.active_memes.append(mem)
         return li_dead_meme
 
-    def view(self, meme, time):
+    def view(self, meme, time_step):
         meme.views += 1
         if meme in self.feed:
             self.feed.remove(meme)
@@ -53,39 +53,44 @@ class Person:
             old_meme = self.feed.pop(0)
             old_meme.ocurrences -= 1
             if old_meme.ocurrences == 0:
-                old_meme.end = time
+                old_meme.end = time_step
                 return old_meme
 
-    def share(self, meme, time):
+    def share(self, meme, time_step):
         meme.shares += 1
         li_dead_meme = []
         for friend in self.friends:
-            dead_meme = friend.view(meme, time)
-            if dead_meme: li_dead_meme.append(dead_meme)
+            dead_meme = friend.view(meme, time_step)
+            if dead_meme:
+                li_dead_meme.append(dead_meme)
         return li_dead_meme
             
-    def read_feed(self, u_sample, time):
+    def read_feed(self, u_sample, time_step):
         quality_sum = 0
         temp = 0
-        for meme in self.feed: quality_sum += meme.quality
+        for meme in self.feed:
+            quality_sum += meme.quality
         for meme in self.feed:
             temp += meme.quality / quality_sum
             if u_sample <= temp: 
-                return self.share(meme, time)
+                return self.share(meme, time_step)
         
     def action(self, network):
         u_sample = random.uniform(0, 1)
-        time = network.time
+        time_step = network.time
         if u_sample >= 1-self.mu:
-            li_dead_meme = self.publish(network=network, quality=quality_cdf((1 - u_sample) / self.mu), time=time)
+            li_dead_meme = self.publish(network=network, quality=quality_cdf((1 - u_sample) / self.mu),
+                                        time_step=time_step)
         else:
-            li_dead_meme = self.read_feed(u_sample=(u_sample / (1 - self.mu)), time=time)
+            li_dead_meme = self.read_feed(u_sample=(u_sample / (1 - self.mu)), time_step=time_step)
         if li_dead_meme:
             network.active_memes = [x for x in network.active_memes if x not in li_dead_meme]
     
     def connected(self, person):
-        if person == self: return True
-        else: return (person in self.friends) and (self in person.friends)
+        if person == self:
+            return True
+        else:
+            return (person in self.friends) and (self in person.friends)
             
     def connect(self, person):
         if not self.connected(person):
@@ -94,7 +99,7 @@ class Person:
             
 
 class Network:
-    def __init__(self, people=0, connexions=0, alpha=0, mu=0):
+    def __init__(self, people=0, connexions=0, alpha=0, mu=0.0):
         self.alpha = alpha
         self.mu = mu
         self.people = []
@@ -102,11 +107,12 @@ class Network:
         self.active_memes_count = []
         self.memes = []
         self.size = 0
-        self.time = 0
+        self.time_step = 0
         if connexions > people * (people - 1) / 2:
             raise Exception('Not enough people in the network to create '+str(connexions)+' different connexions')
         
-        for i in range(people): self.add_person()
+        for i in range(people):
+            self.add_person()
         self.random_connexions(connexions)
 
     def add_person(self):
@@ -136,14 +142,15 @@ class Network:
                 
     def simulate(self, n_steps):
         t = time.time()
-        for i in range(n_steps): self.next_timestep()
-        #print("runtime : {0:.2f} s".format(time.time()-t))
+        for i in range(n_steps):
+            self.next_timestep()
+        # print("runtime : {0:.2f} s".format(time.time()-t))
 
     def next_timestep(self):
         temp = random.randint(self.size)
         person = self.people[temp]
         person.action(self)
-        self.time += 1
+        self.time_step += 1
         self.active_memes_count.append(len(self.active_memes))
 
     def plot_shares(self):
