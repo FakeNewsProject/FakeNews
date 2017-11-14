@@ -255,11 +255,11 @@ if __name__ == '__main__':
     Mu = 0.2
     l = 20
     alpha = 0.95
-    n_steps = 10000
-    n_people = 1000
+    n_steps = 1000
+    n_people = 100
     tau = 0.5
 
-    n_connexions = 10000
+    n_connexions = 500
 
     net = Network(people=n_people, n_connexions=n_connexions, mu=Mu, l=l, alpha=alpha)
     net.calc_connectivities(tau, 10000)
