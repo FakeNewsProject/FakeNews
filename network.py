@@ -263,7 +263,7 @@ if __name__ == '__main__':
                              'end': [meme.end for meme in net.memes]})
 
     memes_df['lifetime'] = memes_df['end'] - memes_df['start']
-    #print(memes_df)
+    # print(memes_df)
 
     print("Kendall Tau : " + str(net.kendall_tau()))
 
